@@ -19,7 +19,7 @@ pipeline {
             steps {
                 script {
                     echo '🛠️  Build Docker image...'
-                    sh 'docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .'
+                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
@@ -29,7 +29,7 @@ pipeline {
                 script {
                     echo '🔐 Login ke DockerHub...'
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                        sh "echo \$PASSWORD | docker login -u \$USERNAME --password-stdin"
                     }
                 }
             }
@@ -39,7 +39,7 @@ pipeline {
             steps {
                 script {
                     echo '📤 Push image ke DockerHub...'
-                    sh 'docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}'
+                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
