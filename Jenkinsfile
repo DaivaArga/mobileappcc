@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        IMAGE_NAME = "zakiwinanda/mobileappcc"
+        IMAGE_NAME = "zakiwinanda/myapp-reactnativeapp"
+        IMAGE_TAG = "latest"
     }
-
 
     stages {
         stage('Checkout') {
@@ -18,8 +18,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo '🛠️  Build Docker image...'
-                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                    echo '🛠️ Build Docker image...'
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
@@ -32,12 +32,11 @@ pipeline {
             }
         }
 
-
         stage('Push to DockerHub') {
             steps {
                 script {
                     echo '📤 Push image ke DockerHub...'
-                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
@@ -49,7 +48,7 @@ pipeline {
                     sh '''
                     docker stop rn_container || true
                     docker rm rn_container || true
-                    docker run -d -p 8081:8081 --name rn_container ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d -p 8081:8081 --name rn_container ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
             }
@@ -61,7 +60,7 @@ pipeline {
             echo '✅ Build & Push berhasil ke Docker Hub!'
         }
         failure {
-            echo '❌ Gagal, cek log error di Jenkins console output.'
+            echo '❌ Build gagal, periksa log di Jenkins console.'
         }
     }
 }
