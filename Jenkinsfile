@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = 'zakiwinanda'
-        IMAGE_NAME = 'reactnativeapp'
-        IMAGE_TAG = 'latest'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        IMAGE_NAME = "zakiwinanda/mobileappcc"
     }
+
 
     stages {
         stage('Checkout') {
@@ -26,14 +26,12 @@ pipeline {
 
         stage('Login to DockerHub') {
             steps {
-                script {
-                    echo '🔐 Login ke DockerHub...'
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh "echo \$PASSWORD | docker login -u \$USERNAME --password-stdin"
-                    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
         }
+
 
         stage('Push to DockerHub') {
             steps {
