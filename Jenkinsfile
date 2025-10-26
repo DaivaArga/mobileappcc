@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        IMAGE_NAME = "zakiwinanda/myapp-reactnativeapp"
+        IMAGE_NAME = "zakiwinanda/mobileappcc"
         IMAGE_TAG = "latest"
     }
 
@@ -19,7 +19,7 @@ pipeline {
             steps {
                 script {
                     echo '🛠️ Build Docker image...'
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
@@ -27,7 +27,7 @@ pipeline {
         stage('Login to DockerHub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
                 }
             }
         }
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 script {
                     echo '📤 Push image ke DockerHub...'
-                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    bat "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
@@ -45,9 +45,9 @@ pipeline {
             steps {
                 script {
                     echo '🚀 Menjalankan container test...'
-                    sh '''
-                    docker stop rn_container || true
-                    docker rm rn_container || true
+                    bat '''
+                    docker stop rn_container || exit 0
+                    docker rm rn_container || exit 0
                     docker run -d -p 8081:8081 --name rn_container ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
@@ -60,7 +60,7 @@ pipeline {
             echo '✅ Build & Push berhasil ke Docker Hub!'
         }
         failure {
-            echo '❌ Build gagal, periksa log di Jenkins console.'
+            echo '❌ Gagal, cek log error di Jenkins console output.'
         }
     }
 }
