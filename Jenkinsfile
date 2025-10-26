@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        IMAGE_NAME = "zakiwinanda/mobileappcc"
+        IMAGE_NAME = "daivaarga14/mobileappcc"
         IMAGE_TAG = "latest"
     }
 
