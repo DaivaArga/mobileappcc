@@ -1,54 +1,69 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    NODE_ENV = 'development'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        git branch: 'main', url: 'https://github.com/zakiwinanda/myApp.git'
-      }
+    environment {
+        DOCKER_HUB_USER = 'zakiwinanda'
+        IMAGE_NAME = 'reactnativeapp'
+        IMAGE_TAG = 'latest'
     }
 
-    stage('Install Dependencies') {
-      steps {
-        sh 'npm install'
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📦 Mengambil source code...'
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo '🛠️  Build Docker image...'
+                    sh 'docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .'
+                }
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                script {
+                    echo '🔐 Login ke DockerHub...'
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                    }
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                script {
+                    echo '📤 Push image ke DockerHub...'
+                    sh 'docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}'
+                }
+            }
+        }
+
+        stage('Deploy (optional)') {
+            steps {
+                script {
+                    echo '🚀 Menjalankan container test...'
+                    sh '''
+                    docker stop rn_container || true
+                    docker rm rn_container || true
+                    docker run -d -p 8081:8081 --name rn_container ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                    '''
+                }
+            }
+        }
     }
 
-    stage('Lint') {
-      steps {
-        sh 'npm run lint || true'
-      }
+    post {
+        success {
+            echo '✅ Build & Push berhasil ke Docker Hub!'
+        }
+        failure {
+            echo '❌ Gagal, cek log error di Jenkins console output.'
+        }
     }
-
-    stage('Build') {
-      steps {
-        sh 'npx expo export --platform android'
-      }
-    }
-
-    stage('Docker Build') {
-      steps {
-        sh 'docker build -t zakiwinanda/myapp .'
-      }
-    }
-
-    stage('Run with Docker Compose') {
-      steps {
-        sh 'docker-compose up -d'
-      }
-    }
-  }
-
-  post {
-    success {
-      echo '✅ Build and deploy successful!'
-    }
-    failure {
-      echo '❌ Build failed. Please check logs.'
-    }
-  }
 }
